@@ -4,4 +4,6 @@ print(xy)
 def smelly_belly():
     return "bink baapa"
 
-print(smelly_belly())
+print("gotcha")
+
+
