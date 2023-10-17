@@ -7,3 +7,4 @@ def smelly_belly():
 print("gotcha")
 
 
+print("Day 2")
