@@ -1,10 +1,4 @@
-print("Hello Big Small")
-xy = 9%2
-print(xy)
-def smelly_belly():
-    return "bink baapa"
+from llama_index import VectorStoreIndex, SimpleDirectoryReader
+import os
 
-print("gotcha")
-
-
-print("Day 2")
+os.environ['OPENAI_API_KEY'] = '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'
