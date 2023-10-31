@@ -53,7 +53,7 @@ def getwatchResponse():
 
 
 # Extract emails after a certain timestamp and from one specific client
-def getlatestEmail(start_history_id):
+def getlatestEmail(start_history_id, client_email):
     # Variable creds will store the user access token.
     # If no valid token found, we will create one.
     creds = None
@@ -114,7 +114,8 @@ def getlatestEmail(start_history_id):
                     email_address = match.group(1)
                 else:
                     email_address = "No email address found in the given text."				
-                if email_address == "pritwik@skoruz.com":
+                #if email_address == "pritwik@skoruz.com":
+                if email_address == client_email:
                 # The Body of the message is in Encrypted format. So, we have to decode it. 
                 # Get the data and decode it with base 64 decoder. 
                     parts = payload.get('parts')[0] 

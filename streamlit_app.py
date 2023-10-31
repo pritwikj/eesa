@@ -8,7 +8,8 @@ st.title("Eesa Prototype")
 
 def streamlit_main():
 
-    st.info("Processing...")
+    client_email= st.text_input("Input your client's email address here:")
+    st.write("Processing...")
     master_task_list = ''
     preclean = prioritize_tasks(contract_extract())
     master_task_list += clean_list(preclean)
@@ -20,8 +21,7 @@ def streamlit_main():
     st.info(master_task_list)
 
     while True:
-        email_data = getlatestEmail(history_id)
-
+        email_data = getlatestEmail(history_id, client_email)
         # Generate the updated value based on the current value
         watch_response = getwatchResponse()
         history_id = watch_response['historyId']
@@ -29,10 +29,10 @@ def streamlit_main():
         if email_data == None:
             master_task_list2 = master_task_list
         else:
-            st.info("Processing pt.2...")
+            st.write("Processing pt.2...")
             email_tasks = clean_list(email_extract(email_data))
             st.info(email_tasks)
-            st.info("Processing pt.3...")
+            st.write("Processing pt.3...")
             master_task_list2 = clean_list(update_master_tasks(master_task_list, email_tasks))
 
         if master_task_list2 != master_task_list:
