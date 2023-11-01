@@ -124,7 +124,9 @@ def getlatestEmail(start_history_id, client_email):
                     decoded_data = base64.b64decode(data) 
                     body = decoded_data.decode("utf-8")
 
-                    email_data += f"Subject: {subject}\nFrom: {email_address}\nMessage: {body}\n\n"	
+                    #email_data += f"Subject: {subject}\nFrom: {email_address}\nMessage: {body}\n\n"	
+                    email_data += f"Subject: {subject}\nMessage: {body}\n\n"	
+
                 else:
                     continue
             except: 
