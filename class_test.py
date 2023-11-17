@@ -1,131 +1,163 @@
 import streamlit as st
+import sqlite3
+from datetime import datetime
+import time
+from task_prioritization import *
 
-demos = ['Demo 1', 'Demo 2', 'Demo 3']
-demo_descriptions = {
-    'Demo 1': 'Number input without value initializer & without callback',
-    'Demo 2': 'Number input with value initializer & without callback',
-    'Demo 3': 'Number input with value initializer & with callback'
-}
-demo_summary = {
-    'Demo 1': 'Since there is no `value` initializer for the number input widgets, their return value is bound immediately (and correctly) '
-              'to their corresponding session state variable. However, whenever the widgets are remounted on rerun their values are reset, '
-              'which might be undesirable.',
-    'Demo 2': 'To overcome the _value reset_ problem in demo 1 we use a `value` initializer for the number inputs. However, the return value '
-              'is NOT picked up properly. It seems the number input widget is remounted with the session state initializer value before '
-              'its return value is bound! This causes the _double press_ issue where you have to click twice to get the value to stick!',
-    'Demo 3': 'To overcome the _double press_ problem in demo 2, we use an `on_change` callback to update the session state `value` for these number input widgets '
-              'from the widget\'s auto-created session state value, using the widget\'s key to access this value. The callback is called _before_ the widget is remounted on re-run. '
-              'Therefore, when the number input widget is remounted it will have with the correct session state initializer value, and so its return value will also be correct! '
-              'This solution eliminates the _double press_ issue!',
-}
 
-demo = st.sidebar.radio(label="Select a demo", options=demos)
+# Function to initialize the database
+def initialize_database(conn):
+    #conn = sqlite3.connect('task_database.db')
+    c = conn.cursor()
 
-if demo == demos[0]:
-    st.subheader(demo_descriptions[demo])
-    st.sidebar.write(demo_descriptions[demo])
-    st.markdown(f'##### {demo_summary[demo]}')
-    with st.echo(code_location='below'):
-        if 'A1' not in st.session_state:
-            st.session_state.A1 = 0
-        if 'B1' not in st.session_state:
-            st.session_state.B1 = 0
+    # Create the tasks table if not exists
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            client_name TEXT,
+            task_list TEXT,
+            timestamp DATETIME
+        )
+    ''')
 
-        radio = st.radio(label="", label_visibility="hidden", options=["Set A1", "Set B1", "Add them"], horizontal=True)
+    conn.commit()
+    #conn.close()
 
-        if radio == "Set A1":
-            st.session_state.A1 = st.number_input(
-                label="What is A1?",
-                min_value=0, max_value=100,
-                key='num_A1'
-            )
-            st.write(f"You set A1 to {st.session_state.A1}")
-        elif radio == "Set B1":
-            st.session_state.B1 = st.number_input(
-                label="What is B1?",
-                min_value=0, max_value=100,
-                key='num_B1'
-            )
-            st.write(f"You set B1 to {st.session_state.B1}")
-        elif radio == "Add them":
-            st.write(f"A1 = {st.session_state.A1} and B1 = {st.session_state.B1}")
-            button = st.button("Add A1 and B1")
-            if button:
-                st.write(f"A1 + B1 = {st.session_state.A1 + st.session_state.B1}")
+# Function to add a master task list for a client to the database
+def add_master_task_list(client_name, task_list, conn):
+    #conn = sqlite3.connect('task_database.db')
+    c = conn.cursor()
 
-if demo == demos[1]:
-    st.subheader(demo_descriptions[demo])
-    st.sidebar.write(demo_descriptions[demo])
-    st.markdown(f'##### {demo_summary[demo]}')
+    # Insert the task list into the database with the current timestamp
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    c.execute('INSERT INTO tasks (client_name, task_list, timestamp) VALUES (?, ?, ?)', (client_name, task_list, timestamp))
 
-    with st.echo(code_location='below'):
-        if 'A2' not in st.session_state:
-            st.session_state.A2 = 0
-        if 'B2' not in st.session_state:
-            st.session_state.B2 = 0
+    conn.commit()
+    #conn.close()
 
-        radio = st.radio(label="", label_visibility="hidden", options=["Set A2", "Set B2", "Add them"], horizontal=True)
+# Function to update the master task list for a client in the database
+def update_master_task_list(client_name, new_task_list, conn):
+    #conn = sqlite3.connect('task_database.db')
+    c = conn.cursor()
 
-        if radio == "Set A2":
-            st.session_state.A2 = st.number_input(
-                label="What is A2?",
-                min_value=0, max_value=100,
-                value=st.session_state.A2,
-                key='num_A2'
-            )
-            st.write(f"You set A2 to {st.session_state.A2}")
-        elif radio == "Set B2":
-            st.session_state.B2 = st.number_input(
-                label="What is B2?",
-                min_value=0, max_value=100,
-                value=st.session_state.B2,
-                key='num_B2'
-            )
-            st.write(f"You set B2 to {st.session_state.B2}")
-        elif radio == "Add them":
-            st.write(f"A2 = {st.session_state.A2} and B2 = {st.session_state.B2}")
-            button = st.button("Add A2 and B2")
-            if button:
-                st.write(f"A2 + B2 = {st.session_state.A2 + st.session_state.B2}")
+    # Update the task_list for the given client
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    c.execute('''
+        UPDATE tasks
+        SET task_list = ?,
+            timestamp = ?
+        WHERE client_name = ?
+    ''', (new_task_list, timestamp, client_name))
 
-if demo == demos[2]:
-    st.subheader(demo_descriptions[demo])
-    st.sidebar.write(demo_descriptions[demo])
-    st.markdown(f'##### {demo_summary[demo]}')
+    conn.commit()
+    #conn.close()
 
-    with st.echo(code_location='below'):
-        if 'A3' not in st.session_state:
-            st.session_state.A3 = 0
-        if 'B3' not in st.session_state:
-            st.session_state.B3 = 0
+# Function to get the master task list for a client from the database
+def get_master_task_list(client_name, conn):
+    #conn = sqlite3.connect('task_database.db')
+    c = conn.cursor()
 
-        def _set_num_A3_cb():
-            st.session_state.A3 = st.session_state.num_A3
-        def _set_num_B3_cb():
-            st.session_state.B3 = st.session_state.num_B3
+    # Select the latest task list for the given client
+    c.execute('''
+        SELECT task_list
+        FROM tasks
+        WHERE client_name = ?
+        ORDER BY timestamp DESC
+        LIMIT 1
+    ''', (client_name,))
+    
+    result = c.fetchone()
 
-        radio = st.radio(label="", label_visibility="hidden", options=["Set A3", "Set B3", "Add them"], horizontal=True)
+    #conn.close()
 
-        if radio == "Set A3":
-            st.session_state.A3 = st.number_input(
-                label="What is A3?",
-                min_value=0, max_value=100,
-                value=st.session_state.A3,
-                on_change=_set_num_A3_cb,
-                key='num_A3'
-            )
-            st.write(f"You set A3 to {st.session_state.A3}")
-        elif radio == "Set B3":
-            st.session_state.B3 = st.number_input(
-                label="What is B3?",
-                min_value=0, max_value=100,
-                value=st.session_state.B3,
-                on_change=_set_num_B3_cb,
-                key='num_B3'
-            )
-            st.write(f"You set B3 to {st.session_state.B3}")
-        elif radio == "Add them":
-            st.write(f"A3 = {st.session_state.A3} and B3 = {st.session_state.B3}")
-            button = st.button("Add A3 and B3")
-            if button:
-                st.write(f"A3 + B3 = {st.session_state.A3 + st.session_state.B3}")
+    return result[0] if result else None
+
+
+
+
+#@st.cache_data(show_spinner=False)
+def contract_helper(client_name, conn):
+    master_task_list = ''
+    placeholder = st.empty()
+    with st.spinner(f"Processing contract for {client_name}... Do not exit page"):
+        preclean = prioritize_tasks(contract_extract())
+        master_task_list += clean_list(preclean)
+    placeholder.info("Contract processed!")
+    time.sleep(1)
+    placeholder.empty()
+
+    # Add the master task list to the database
+    add_master_task_list(client_name, master_task_list, conn)
+    
+
+def email_helper(history_id):
+    client_email = "pritwik@skoruz.com"
+    email_data = getlatestEmail(history_id, client_email)
+    if email_data is not None:
+        st.write(f"Processing emails pt.2...")
+        email_tasks = clean_list(email_extract(email_data))
+        return email_tasks
+    return None
+
+def pull_emails(history_id, client_name, master_task_list, conn):
+    email_tasks = email_helper(history_id)
+
+    if email_tasks is None:
+        master_task_list2 = master_task_list
+    else:
+        st.write(f"Processing emails pt.3...")
+        master_task_list2 = clean_list(update_master_tasks(master_task_list, email_tasks))
+
+    if master_task_list2 != master_task_list:
+        update_master_task_list(client_name, master_task_list2, conn)
+        master_task_list = master_task_list2
+    else:
+        pass
+
+# Function to run the main application
+def main():    
+    conn = sqlite3.connect('task_database.db')
+
+    initialize_database(conn)
+
+    # Get the existing clients from the database
+    existing_clients = set()
+    c = conn.cursor()
+    c.execute('SELECT DISTINCT client_name FROM tasks')
+    result = c.fetchall()
+    existing_clients.update(client[0] for client in result)
+    #conn.close()
+
+    # Streamlit interface for adding a new client
+    new_client = st.text_input("Add a new client:")
+    if new_client not in existing_clients:
+        st.write(f"Added new client: {new_client}")
+        existing_clients.add(new_client)
+
+    clients = st.selectbox("Select a client", list(existing_clients), index=0)
+
+    if clients == "":
+        st.write("Start adding your clients in the settings page!")
+    else:
+        retrieved_task_list = get_master_task_list(clients, conn)
+        if retrieved_task_list is None:
+            contract_helper(clients, conn)
+
+        placeholder = st.empty()
+        watch_response = getwatchResponse()
+        history_id = watch_response['historyId']
+        while True:
+            pull_emails(history_id, clients, retrieved_task_list, conn)
+
+            # Retrieve and display the master task list from the database
+            retrieved_task_list = get_master_task_list(clients, conn)
+            placeholder.empty()
+            placeholder.write(retrieved_task_list)
+            watch_response = getwatchResponse()
+            history_id = watch_response['historyId']
+            time.sleep(10)
+
+
+
+if __name__ == '__main__':
+    main()

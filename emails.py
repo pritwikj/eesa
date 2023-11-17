@@ -114,7 +114,7 @@ def getlatestEmail(start_history_id, client_email):
                     email_address = match.group(1)
                 else:
                     email_address = "No email address found in the given text."				
-                #if email_address == "pritwik@skoruz.com":
+
                 if email_address == client_email:
                 # The Body of the message is in Encrypted format. So, we have to decode it. 
                 # Get the data and decode it with base 64 decoder. 
@@ -128,7 +128,7 @@ def getlatestEmail(start_history_id, client_email):
                     email_data += f"Subject: {subject}\nMessage: {body}\n\n"	
 
                 else:
-                    continue
+                    return
             except: 
                 pass
 

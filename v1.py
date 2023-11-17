@@ -1,20 +1,151 @@
-from llama_index import VectorStoreIndex, Document, SimpleDirectoryReader
-from llama_index.node_parser import SimpleNodeParser
-import os
+import streamlit as st
+import sqlite3
+from datetime import datetime
+import time
+from task_prioritization import *
 
-os.environ['OPENAI_API_KEY'] = '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'
+
+# Function to initialize the database
+def initialize_database():
+    conn = sqlite3.connect('task_database.db')
+    c = conn.cursor()
+
+    # Create the tasks table if not exists
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            client_name TEXT,
+            task_list TEXT,
+            timestamp DATETIME
+        )
+    ''')
+
+    conn.commit()
+    conn.close()
+
+# Function to add a master task list for a client to the database
+def add_master_task_list(client_name, task_list):
+    conn = sqlite3.connect('task_database.db')
+    c = conn.cursor()
+
+    # Insert the task list into the database with the current timestamp
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    c.execute('INSERT INTO tasks (client_name, task_list, timestamp) VALUES (?, ?, ?)', (client_name, task_list, timestamp))
+
+    conn.commit()
+    conn.close()
+
+# Function to update the master task list for a client in the database
+def update_master_task_list(client_name, new_task_list):
+    conn = sqlite3.connect('task_database.db')
+    c = conn.cursor()
+
+    # Update the task_list for the given client
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    c.execute('''
+        UPDATE tasks
+        SET task_list = ?,
+            timestamp = ?
+        WHERE client_name = ?
+    ''', (new_task_list, timestamp, client_name))
+
+    conn.commit()
+    conn.close()
+
+# Function to get the master task list for a client from the database
+def get_master_task_list(client_name):
+    conn = sqlite3.connect('task_database.db')
+    c = conn.cursor()
+
+    # Select the latest task list for the given client
+    c.execute('''
+        SELECT task_list
+        FROM tasks
+        WHERE client_name = ?
+        ORDER BY timestamp DESC
+        LIMIT 1
+    ''', (client_name,))
+    
+    result = c.fetchone()
+
+    conn.close()
+
+    return result[0] if result else None
+
+@st.cache_data(show_spinner=False)
+def contract_helper():
+    client_name = "Test 1"
+    master_task_list = ''
+    placeholder = st.empty()
+    with st.spinner("Processing contract... Do not exit page"):
+        preclean = prioritize_tasks(contract_extract())
+        master_task_list += clean_list(preclean)
+    placeholder.info("Contract processed!")
+    time.sleep(1)
+    placeholder.empty()
+
+    # Add the master task list to the database
+    add_master_task_list(client_name, master_task_list)
+
+    #return master_task_list
+
+def email_helper(history_id, client_email):
+    email_data = getlatestEmail(history_id, client_email)
+    # Generate the updated value based on the current value
+    # watch_response = getwatchResponse()
+    # history_id = watch_response['historyId']
+
+    if email_data != None:
+        st.write("Processing pt.2...")
+        email_tasks = clean_list(email_extract(email_data))
+        return email_tasks
+    
+def pull_emails(history_id, master_task_list):
+    email_address = "pritwik@skoruz.com"
+    client_name = "Test 1"
+    client_email = email_address
+    email_tasks = email_helper(history_id, client_email)
+
+    
+    # # Generate the updated value based on the current value
+    # watch_response = getwatchResponse()
+    # history_id = watch_response['historyId']
+    
+    if email_tasks == None:
+        master_task_list2 = master_task_list
+    else:
+        st.write("Processing pt.3...")
+        master_task_list2 = clean_list(update_master_tasks(master_task_list, email_tasks))
+
+    if master_task_list2 != master_task_list:
+        update_master_task_list(client_name, master_task_list2)
+        master_task_list = master_task_list2
+    else:
+        pass
+
+# Function to run the main application
+def main():
+    initialize_database()    
+
+    retrieved_task_list = get_master_task_list("Test 1")
+    if retrieved_task_list is None:
+        contract_helper()
+    st.write(retrieved_task_list)
 
 
-text1 = "TechSolutions Inc. is a burgeoning startup in the SaaS industry, specializing in cloud-based project management software. Founded by a team of experienced tech entrepreneurs, the company has successfully entered North American and European markets, securing $2 million in seed funding and currently in the process of raising Series A funding to further accelerate their growth. Their main objectives include enhancing user onboarding, driving feature adoption, and improving customer retention to reduce churn rates. Additionally, they aim to maintain product scalability and actively gather user feedback for continuous product development. As a Customer Success Manager for TechSolutions Inc., my role revolves around collaborating closely with the client to address these challenges, devise tailored success strategies, and consistently monitor their progress and satisfaction to ensure a prosperous, long-term partnership."
-text2 = "User Onboarding Optimization: Review the current onboarding process to identify potential bottlenecks or areas for improvement. Collaborate with the product team to implement any necessary changes to streamline onboarding.Develop and update onboarding materials, such as guides and tutorials, for new users.Feature Adoption Promotion:Identify which features are underutilized by customers through data analysis.Reach out to customers who aren't using key features to provide personalized training or guidance.Develop a feature adoption campaign to educate users about the benefits of using specific features.Customer Retention Analysis:Analyze customer churn rates and identify the reasons for customer attrition.Work with the marketing team to develop targeted retention campaigns or offers.Contact at-risk customers to understand their concerns and offer solutions.Product Scalability Monitoring:Coordinate with the tech team to ensure the software's scalability and performance as TechSolutions grows. Establish regular performance monitoring and reporting mechanisms. Develop a contingency plan for addressing potential scalability issues.Gathering User Feedback:Schedule and conduct interviews or surveys with a sample of active users.Analyze feedback data to identify trends and actionable insights.Share feedback findings with the product team for continuous improvement.Customer Check-ins:Schedule regular check-in calls with key accounts to assess their satisfaction and needs.Address any concerns or issues raised by customers and document them for follow-up.Share positive feedback and testimonials with the marketing team for promotion."
+    placeholder = st.empty()
+    watch_response = getwatchResponse()
+    history_id = watch_response['historyId']
+    while True:
+        pull_emails(history_id, retrieved_task_list)
 
-text_list = [text1, text2]
-documents = [Document(text=t) for t in text_list]
-parser = SimpleNodeParser.from_defaults()
-nodes = parser.get_nodes_from_documents(documents)
-#index = VectorStoreIndex.from_documents(documents)
-index = VectorStoreIndex(nodes)
+        # Retrieve and display the master task list from the database
+        retrieved_task_list = get_master_task_list("Test 1")
+        placeholder.empty()
+        placeholder.write(retrieved_task_list)
+        watch_response = getwatchResponse()
+        history_id = watch_response['historyId']
+        time.sleep(10)
 
-query_engine = index.as_query_engine()
-response = query_engine.query("I want you to be a Customer Success manageer. Based off of the given information about the client TechSolutions, and the tasks that you have, prioritize the tasks in an ordered list. Make sure that the most important tasks are at the top of the list.")
-print(response)
+if __name__ == '__main__':    
+    main()
