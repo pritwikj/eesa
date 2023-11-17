@@ -116,51 +116,8 @@ def pull_emails(history_id, client_name, master_task_list, conn):
 
 
 
-# # Function to run the main application
-# def main():    
-#     conn = sqlite3.connect('task_database.db')
-
-#     initialize_database(conn)
-
-#     # Get the existing clients from the database
-#     existing_clients = set()
-#     c = conn.cursor()
-#     c.execute('SELECT DISTINCT client_name FROM tasks')
-#     result = c.fetchall()
-#     existing_clients.update(client[0] for client in result)
-#     #conn.close()
-
-#     # Streamlit interface for adding a new client
-#     new_client = st.text_input("Add a new client:")
-#     if new_client not in existing_clients:
-#         st.write(f"Added new client: {new_client}")
-#         existing_clients.add(new_client)
-
-#     clients = st.selectbox("Select a client", list(existing_clients), index=0)
-
-#     if clients == "":
-#         st.write("Start adding your clients in the settings page!")
-#     else:
-#         retrieved_task_list = get_master_task_list(clients, conn)
-#         if retrieved_task_list is None:
-#             contract_helper(clients, conn)
-
-#         placeholder = st.empty()
-#         watch_response = getwatchResponse()
-#         history_id = watch_response['historyId']
-#         while True:
-#             pull_emails(history_id, clients, retrieved_task_list, conn)
-
-#             # Retrieve and display the master task list from the database
-#             retrieved_task_list = get_master_task_list(clients, conn)
-#             placeholder.empty()
-#             placeholder.write(retrieved_task_list)
-#             watch_response = getwatchResponse()
-#             history_id = watch_response['historyId']
-#             time.sleep(10)
-
-
-def main():
+# Function to run the main application
+def main():    
     conn = sqlite3.connect('task_database.db')
 
     initialize_database(conn)
@@ -171,7 +128,7 @@ def main():
     c.execute('SELECT DISTINCT client_name FROM tasks')
     result = c.fetchall()
     existing_clients.update(client[0] for client in result)
-    # conn.close()
+    #conn.close()
 
     # Streamlit interface for adding a new client
     new_client = st.text_input("Add a new client:")
@@ -182,26 +139,18 @@ def main():
     clients = st.selectbox("Select a client", list(existing_clients), index=0)
 
     if clients == "":
-        st.write("Start adding your clients on the settings page!")
+        st.write("Start adding your clients in the settings page!")
     else:
         retrieved_task_list = get_master_task_list(clients, conn)
         if retrieved_task_list is None:
             contract_helper(clients, conn)
 
         placeholder = st.empty()
-        
-        # Function to run in a separate thread for background updates
-        def update_task_list_background():
-            while True:
-                history_id = getwatchResponse()['historyId']
-                pull_emails(history_id, clients, retrieved_task_list, conn)
-                time.sleep(10)
-
-        # Start a separate thread for background updates
-        update_thread = threading.Thread(target=update_task_list_background, daemon=True)
-        update_thread.start()
-
+        watch_response = getwatchResponse()
+        history_id = watch_response['historyId']
         while True:
+            pull_emails(history_id, clients, retrieved_task_list, conn)
+
             # Retrieve and display the master task list from the database
             retrieved_task_list = get_master_task_list(clients, conn)
             placeholder.empty()
@@ -209,6 +158,7 @@ def main():
             watch_response = getwatchResponse()
             history_id = watch_response['historyId']
             time.sleep(10)
+
 
 
 if __name__ == '__main__':
