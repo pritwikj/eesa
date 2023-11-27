@@ -253,28 +253,22 @@ def main():
 
     clients = st.sidebar.selectbox("Select a client", list(existing_clients), index=0)
     
-    # placeholder_title = st.empty()
-    # if clients is not None:
-    #     placeholder_title.title("CLIENT: " + clients)
-    
-
-    if 'placeholder' in st.session_state:
-        st.session_state['placeholder'].empty()
-    else:
-        st.session_state['placeholder'] = st.empty()
-
-    if 'title' in st.session_state:
-        st.session_state['title'].empty()
-    else:
-        st.session_state['title'] = st.empty()
-
     if clients == None:
         st.write("Start adding your clients in the settings page!")
     else:
-        #st.title("Client" + clients)
-
+        if 'title' in st.session_state:
+            st.session_state['title'].empty()
+        else:
+            st.session_state['title'] = st.empty()
         st.session_state['title'].title("Client: " + clients)
+
+        if 'placeholder' in st.session_state:
+            st.session_state['placeholder'].empty()
+        else:
+            st.session_state['placeholder'] = st.empty()
+
         st.session_state['placeholder'].empty()
+        
         retrieved_task_list = get_master_task_list(clients)
         if retrieved_task_list is None:
             #contract_helper(clients, client_email)
@@ -284,9 +278,7 @@ def main():
         while True:
             retrieved_task_list = get_master_task_list(clients)
             st.session_state['placeholder'].empty()
-            #placeholder.empty()
             st.session_state['placeholder'].write(retrieved_task_list)
-            #placeholder.write(retrieved_task_list)
             time.sleep(5)
 
 
