@@ -57,35 +57,6 @@ def add_or_update_master_task_list(client_name, client_email, task_list):
     conn.close()
 
 
-# # Function to add a master task list for a client to the database
-# def add_master_task_list(client_name, client_email, task_list):
-#     conn = sqlite3.connect('task_database.db')
-#     c = conn.cursor()
-
-#     # Insert the task list into the database with the current timestamp
-#     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-#     c.execute('INSERT INTO tasks (client_name, client_email, task_list, timestamp) VALUES (?, ?, ?, ?)', (client_name, client_email, task_list, timestamp))
-
-#     conn.commit()
-#     conn.close()
-
-# # Function to update the master task list for a client in the database
-# def update_master_task_list(client_name, new_task_list):
-#     conn = sqlite3.connect('task_database.db')
-#     c = conn.cursor()
-
-#     # Update the task_list for the given client
-#     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-#     c.execute('''
-#         UPDATE tasks
-#         SET task_list = ?,
-#             timestamp = ?
-#         WHERE client_name = ?
-#     ''', (new_task_list, timestamp, client_name))
-
-#     conn.commit()
-#     conn.close()
-
 # Function to get the master task list for a client from the database
 def get_master_task_list(client_name):
     conn = sqlite3.connect('task_database.db')
@@ -127,7 +98,8 @@ def email_helper(history_id, client_email):
         st.write("Processing emails pt.2...")
         email_tasks = clean_list(email_extract(email_data))
         return email_tasks
-    return None
+    else:
+        return None
 
 def pull_emails(history_id, client_name, client_email, master_task_list):
     email_tasks = email_helper(history_id, client_email)
@@ -143,52 +115,6 @@ def pull_emails(history_id, client_name, client_email, master_task_list):
         master_task_list = master_task_list2
     else:
         pass
-
-
-
-# # Function to run the main application
-# def main():    
-#     conn = sqlite3.connect('task_database.db')
-
-#     initialize_database(conn)
-
-#     # Get the existing clients from the database
-#     existing_clients = set()
-#     c = conn.cursor()
-#     c.execute('SELECT DISTINCT client_name FROM tasks')
-#     result = c.fetchall()
-#     existing_clients.update(client[0] for client in result)
-#     conn.close()
-
-#     # Streamlit interface for adding a new client
-#     new_client = st.text_input("Add a new client:")
-#     if new_client not in existing_clients:
-#         st.write(f"Added new client: {new_client}")
-#         existing_clients.add(new_client)
-
-#     clients = st.selectbox("Select a client", list(existing_clients), index=0)
-
-#     if clients == "":
-#         st.write("Start adding your clients in the settings page!")
-#     else:
-#         retrieved_task_list = get_master_task_list(clients, conn)
-#         if retrieved_task_list is None:
-#             contract_helper(clients, conn)
-
-#         placeholder = st.empty()
-#         watch_response = getwatchResponse()
-#         history_id = watch_response['historyId']
-#         while True:
-#             pull_emails(history_id, clients, retrieved_task_list, conn)
-
-#             # Retrieve and display the master task list from the database
-#             retrieved_task_list = get_master_task_list(clients, conn)
-#             placeholder.empty()
-#             placeholder.write(retrieved_task_list)
-#             watch_response = getwatchResponse()
-#             history_id = watch_response['historyId']
-#             time.sleep(10)
-
 
 
 
@@ -242,24 +168,21 @@ def main():
         existing_clients.add(new_client)
         existing_emails.add(client_email)
 
-        #st.write(f"Added new client: {new_client}")
-
-
         # Start a background thread for the new client
         background_thread = threading.Thread(target=background_task, args=(new_client, client_email,))
         add_script_run_ctx(background_thread)
         background_thread.start()
 
-
     clients = st.sidebar.selectbox("Select a client", list(existing_clients), index=0)
-    
+
     if clients == None:
-        st.write("Start adding your clients in the settings page!")
+        st.write("Start adding your clients on the left side!")
     else:
         if 'title' in st.session_state:
             st.session_state['title'].empty()
         else:
             st.session_state['title'] = st.empty()
+
         st.session_state['title'].title("Client: " + clients)
 
         if 'placeholder' in st.session_state:
@@ -272,8 +195,8 @@ def main():
         retrieved_task_list = get_master_task_list(clients)
         if retrieved_task_list is None:
             #contract_helper(clients, client_email)
-            time.sleep(5)
-            add_or_update_master_task_list(clients, client_email, "Test contract")
+            #time.sleep(5)
+            add_or_update_master_task_list(clients, client_email, "No tasks yet")
         
         while True:
             retrieved_task_list = get_master_task_list(clients)
@@ -288,15 +211,15 @@ def main():
 def background_task(client_name, client_email):
     watch_response = getwatchResponse()
     history_id = watch_response['historyId']
-    n = 0
+    #n = 0
     while True:
         retrieved_task_list = get_master_task_list(client_name)
 
         if retrieved_task_list is not None:
-            n+=1
-            add_or_update_master_task_list(client_name, client_email, n)
+            #n+=1
+            #add_or_update_master_task_list(client_name, client_email, n)
 
-            #pull_emails(history_id, client_name, retrieved_task_list)
+            pull_emails(history_id, client_name, client_email, retrieved_task_list)
 
             watch_response = getwatchResponse()
             history_id = watch_response['historyId']
