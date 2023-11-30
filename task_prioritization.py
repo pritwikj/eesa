@@ -3,7 +3,7 @@ import openai
 from emails import getwatchResponse, getlatestEmail
 
 # Set up YOUR OpenAI API key
-openai.api_key = "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"
+openai.api_key = ""
 # Set MODEL to "gpt-3.5-turbo"
 model = "gpt-3.5-turbo" 
 # Set temperature
