@@ -77,19 +77,19 @@ def get_master_task_list(client_name):
 
     return result[0] if result else None
 
+# Not used currently but may be in the future
+# def contract_helper(client_name, client_email):
+#     master_task_list = ''
+#     placeholder_c = st.empty()
+#     with st.spinner(f"Processing contract for {client_name}... Do not exit page"):
+#         preclean = prioritize_tasks(contract_extract())
+#         master_task_list += clean_list(preclean)
+#     placeholder_c.info("Contract processed!")
+#     time.sleep(2)
+#     placeholder_c.empty()
 
-def contract_helper(client_name, client_email):
-    master_task_list = ''
-    placeholder_c = st.empty()
-    with st.spinner(f"Processing contract for {client_name}... Do not exit page"):
-        preclean = prioritize_tasks(contract_extract())
-        master_task_list += clean_list(preclean)
-    placeholder_c.info("Contract processed!")
-    time.sleep(2)
-    placeholder_c.empty()
-
-    # Add the master task list to the database
-    add_or_update_master_task_list(client_name, client_email, master_task_list)
+#     # Add the master task list to the database
+#     add_or_update_master_task_list(client_name, client_email, master_task_list)
     
 
 def email_helper(history_id, client_email):
@@ -101,18 +101,6 @@ def email_helper(history_id, client_email):
         return None
 
 def pull_emails(history_id, client_name, client_email, master_task_list):
-    # email_tasks = email_helper(history_id, client_email)
-
-    # if email_tasks is None:
-    #     master_task_list2 = master_task_list
-    # else:
-    #     master_task_list2 = clean_list(update_master_tasks(master_task_list, email_tasks))
-
-    # if master_task_list2 != master_task_list:
-    #     add_or_update_master_task_list(client_name, client_email, master_task_list2)
-    #     master_task_list = master_task_list2
-    # else:
-    #     pass
 
     email_tasks = email_helper(history_id, client_email)
 
@@ -224,19 +212,14 @@ def main():
 def background_task(client_name, client_email):
     watch_response = getwatchResponse()
     history_id = watch_response['historyId']
-    #n = 0
     while True:
         retrieved_task_list = get_master_task_list(client_name)
 
         if retrieved_task_list is not None:
-            #n+=1
-            #add_or_update_master_task_list(client_name, client_email, n)
+
 
             pull_emails(history_id, client_name, client_email, retrieved_task_list)
-            # retrieved_task_list2 = get_master_task_list(client_name)
-            # if n != 1:
-            #     pull_calls(client_name, client_email, retrieved_task_list2)
-            #n = 1
+
 
             watch_response = getwatchResponse()
             history_id = watch_response['historyId']

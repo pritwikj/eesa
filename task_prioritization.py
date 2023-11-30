@@ -6,8 +6,6 @@ from emails import getwatchResponse, getlatestEmail
 openai.api_key = "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"
 # Set MODEL to "gpt-3.5-turbo"
 model = "gpt-3.5-turbo" 
-# try gpt4
-#model = "gpt-4"
 # Set temperature
 temperature = 0.1
 
