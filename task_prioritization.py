@@ -265,7 +265,7 @@ def prioritize_tasks(content_final):
 
     #content_final = response + "\n" + response2 + "\n" + response3 + "\n" + response4
 
-    user_message_final = {"role": "user", "content": "These are the tasks that you have for this coming week for one client" + content_final + "\n \n Based on the context \
+    user_message_final = {"role": "user", "content": "These are the tasks that you have for this coming week for one client:" + content_final + "\n \n Based on the context \
     of the tasks, each task has a score at the end between 1-10 for how urgent the task needs to be completed. \
     For example, this task: -Schedule a discovery call with XYZ Corporation's key stakeholders to understand their specific goals, challenges, and requirements (10).\
     This task has a (10) at the end because it is of utmost importance. Now, using this urgency score and the provided reasoning, along with your own knowledge and expertise as \
@@ -304,7 +304,7 @@ def update_master_tasks(master_task_list, content_update):
     This task has a (10) at the end because it is of utmost importance. Now, using the urgency score and the provided reasoning, along with your own knowledge and expertise as \
     a Customer Success manager, insert the following new task(s) into the proper place in the task list based on priority: " + content_update + "Tasks that require immediate attention to \
     the customer's current operations (like issues or renewals) should be higher priority. Tasks that are for future plans (like feature requests) should be lesser priority. \
-    Keep the numbered list format. DO NOT create additional tasks; only use the given tasks. Give reasoning for the new task's priority positioning."}
+    Keep the list format. DO NOT create additional tasks; only use the given tasks. Give reasoning for the new task's priority positioning."}
 
     message_list_update.append(user_message_update)
 
@@ -315,6 +315,45 @@ def update_master_tasks(master_task_list, content_update):
     response_updated = response_message_update.choices[0].message.content
 
     return response_updated
+
+
+def update_master_tasks2(master_task_list, content_update):
+    """Update task list every time a new task is detected"""
+
+    message_list_update = []
+
+    # Firstly, we need to set up a instruction for the bot to follow
+    system_message_update = {"role": "system", "content": "You are a busy Customer Success manager at a startup and you deal with many clients"}
+
+    message_list_update.append(system_message_update)
+
+    if "client list from database" is #empty:
+        user_message_update = {"role": "user", "content": "These are the tasks that you have for this coming week for one client:" + content_update + "\n \n Based on the context \
+        of the tasks, each task has a score at the end between 1-10 for how urgent the task needs to be completed. \
+        For example, this task: -Schedule a discovery call with XYZ Corporation's key stakeholders to understand their specific goals, challenges, and requirements (10).\
+        This task has a (10) at the end because it is of utmost importance. Now, using this urgency score and the provided reasoning, along with your own knowledge and expertise as \
+        a Customer Success manager, prioritize the given tasks, and only the given tasks. Tasks that require immediate attention to the customer's current operations (like issues or renewals) should be prioritized. Tasks that are for \
+        future plans (like feature requests) should be lesser priority. Keep the list format. Give reasoning for each task's priority positioning."}
+
+    else:
+        user_message_update = {"role": "user", "content": "This is the task list that you have for this coming week for one client. It is ranked from highest \
+        priority to lowest:" + master_task_list + "\n \n Based on the context of the tasks, each task has a score at the end between 1-10 for how urgent the task needs to be completed. \
+        Example: -Schedule a discovery call with XYZ Corporation's key stakeholders to understand their specific goals, challenges, and requirements (10).\
+        This task has a (10) at the end because it is of utmost importance. Now, using the urgency score and the provided reasoning, along with your own knowledge and expertise as \
+        a Customer Success manager, insert the following new task(s) into the proper place in the task list based on priority: " + content_update + "Tasks that require immediate attention to \
+        the customer's current operations (like issues or renewals) should be higher priority. Tasks that are for future plans (like feature requests) should be lesser priority. \
+        Keep the list format. DO NOT create additional tasks; only use the given tasks. Give reasoning for the new task's priority positioning."}
+
+    message_list_update.append(user_message_update)
+
+    # Send the message to the bot
+    response_message_update = openai.ChatCompletion.create(model=model, messages=message_list_update, temperature=temperature)
+
+    # Get the response from the bot
+    response_updated = response_message_update.choices[0].message.content
+
+    return response_updated
+
 
 
 

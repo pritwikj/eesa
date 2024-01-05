@@ -101,9 +101,7 @@ def email_helper(history_id, client_email):
         return None
 
 def pull_emails(history_id, client_name, client_email, master_task_list):
-
     email_tasks = email_helper(history_id, client_email)
-
     if email_tasks is not None:
         master_task_list2 = clean_list(update_master_tasks(master_task_list, email_tasks)) 
         add_or_update_master_task_list(client_name, client_email, master_task_list2)
@@ -112,7 +110,8 @@ def pull_emails(history_id, client_name, client_email, master_task_list):
 
 
 def pull_calls(client_name, client_email, master_task_list):
-    call_tasks = call_extract()
+    call_data = ""
+    call_tasks = call_extract() #put call_data as parameter once transcript data is available
     master_task_list2 = clean_list(update_master_tasks(master_task_list, call_tasks)) 
     add_or_update_master_task_list(client_name, client_email, master_task_list2)
 
@@ -216,11 +215,9 @@ def background_task(client_name, client_email):
         retrieved_task_list = get_master_task_list(client_name)
 
         if retrieved_task_list is not None:
-
-
             pull_emails(history_id, client_name, client_email, retrieved_task_list)
-
-
+            #retrieved_task_list = get_master_task_list(client_name)
+            #pull_calls(client_name, client_email, retrieved_task_list)
             watch_response = getwatchResponse()
             history_id = watch_response['historyId']
 
