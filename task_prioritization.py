@@ -18,11 +18,15 @@ def email_extract(content1):
 
     message_list1.append(system_message)
 
-    user_message = {"role": "user", "content": "Extract, in a concise unnumbered list, a maximum of 2 action tasks that you have to do from each email: " + content1 +\
+    '''user_message = {"role": "user", "content": "Extract, in a concise unnumbered list, a maximum of 2 action tasks that you have to do from each email: " + content1 +\
     "You do not need to list obvious actions. If appropriate, consolidate similar tasks into one task. DO NOT add extra tasks. Based on the context of the email, assign a number between 1-10 for how urgent the task needs to be completed. Tasks that require immediate attention to the \
     customer's current operations should be given a higher score. Tasks that are for future plans (like feature requests) should be given lower scores. \
     Give reasoning for each score. Here is an example: -Schedule a discovery call with XYZ Corporation's key stakeholders to understand their specific \
-    goals, challenges, and requirements (10). This task has a (10) at the end because it is of utmost importance."}
+    goals, challenges, and requirements (10). This task has a (10) at the end because it is of utmost importance."}'''
+
+    user_message = {"role": "user", "content": "Imagine you keep a task list in your notebook. Extract one or two action tasks that you have to do as a \
+    CSM from this email so you can write it down in your notebook. Keep the task(s) simple and the list as short as possible. Do not \
+    add extra unnecessary tasks. The email: " + content1}
 
     message_list1.append(user_message)
 
@@ -77,12 +81,17 @@ def call_extract():
 
     CSM: It's been a pleasure assisting you, John. If you ever have more questions or concerns, don't hesitate to reach out. Have a great day!"""
 
-    user_message2 = {"role": "user", "content": "This is a transcript of a meeting you had with a client: " + content2 + "\n \n Extract, in an unnumbered \
+    '''user_message2 = {"role": "user", "content": "This is a transcript of a meeting you had with a client: " + content2 + "\n \n Extract, in an unnumbered \
     list, the 3 main relevant specific task(s) that you have to do from this transcript. Based on the context of the transcript, assign a number between 1-10 for how urgent \
     the task needs to be completed. Tasks that require immediate attention to the customer's current operations should be given a higher score. Tasks that are \
     for future plans (like feature requests) should be given lower scores. Give reasoning for each score. Here is an example: -Schedule a discovery call with XYZ \
-    Corporation's key stakeholders to understand their specific goals, challenges, and requirements (10). This task has a (10) at the end because it is of utmost importance."}
+    Corporation's key stakeholders to understand their specific goals, challenges, and requirements (10). This task has a (10) at the end because it is of utmost importance."}'''
 
+    user_message2 = {"role": "user", "content": "Imagine you keep a task list in your notebook. This is a transcript of a meeting you \
+    had with a client:" + content2 + "\n\n Extract the main relevant specific task(s) that you have to do from this transcript so you can \
+    write it down in your notebook. Keep the task(s) simple and the list as short as possible. Do not add extra unnecessary tasks."}
+    
+    
     message_list2.append(user_message2)
 
     # Send the message to the bot
@@ -286,7 +295,7 @@ def prioritize_tasks(content_final):
 
 
 
-def update_master_tasks(master_task_list, content_update):
+''' def update_master_tasks(master_task_list, content_update):
     """Update task list every time a new task is detected"""
 
     message_list_update = []
@@ -314,10 +323,10 @@ def update_master_tasks(master_task_list, content_update):
     # Get the response from the bot
     response_updated = response_message_update.choices[0].message.content
 
-    return response_updated
+    return response_updated '''
 
 
-def update_master_tasks2(master_task_list, content_update):
+def update_master_tasks(master_task_list, content_update):
     """Update task list every time a new task is detected"""
 
     message_list_update = []
@@ -327,22 +336,20 @@ def update_master_tasks2(master_task_list, content_update):
 
     message_list_update.append(system_message_update)
 
-    if "client list from database" is #empty:
-        user_message_update = {"role": "user", "content": "These are the tasks that you have for this coming week for one client:" + content_update + "\n \n Based on the context \
-        of the tasks, each task has a score at the end between 1-10 for how urgent the task needs to be completed. \
-        For example, this task: -Schedule a discovery call with XYZ Corporation's key stakeholders to understand their specific goals, challenges, and requirements (10).\
-        This task has a (10) at the end because it is of utmost importance. Now, using this urgency score and the provided reasoning, along with your own knowledge and expertise as \
-        a Customer Success manager, prioritize the given tasks, and only the given tasks. Tasks that require immediate attention to the customer's current operations (like issues or renewals) should be prioritized. Tasks that are for \
-        future plans (like feature requests) should be lesser priority. Keep the list format. Give reasoning for each task's priority positioning."}
+    if not master_task_list:
+        user_message_update = {"role": "user", "content": "These are the tasks that you have for this coming week for one \
+        client:" + content_update + "\n\n Now, using your own knowledge and expertise as an experienced Customer Success manager, prioritize \
+        the given tasks, and only the given tasks. Do not add additional tasks. Tasks that require immediate attention to the customer's \
+        current operations (like issues or renewals) should be highly prioritized. Tasks that are for future plans (like feature requests) should \
+        be lesser priority. Give reasoning for each task's priority positioning."}
 
     else:
-        user_message_update = {"role": "user", "content": "This is the task list that you have for this coming week for one client. It is ranked from highest \
-        priority to lowest:" + master_task_list + "\n \n Based on the context of the tasks, each task has a score at the end between 1-10 for how urgent the task needs to be completed. \
-        Example: -Schedule a discovery call with XYZ Corporation's key stakeholders to understand their specific goals, challenges, and requirements (10).\
-        This task has a (10) at the end because it is of utmost importance. Now, using the urgency score and the provided reasoning, along with your own knowledge and expertise as \
-        a Customer Success manager, insert the following new task(s) into the proper place in the task list based on priority: " + content_update + "Tasks that require immediate attention to \
-        the customer's current operations (like issues or renewals) should be higher priority. Tasks that are for future plans (like feature requests) should be lesser priority. \
-        Keep the list format. DO NOT create additional tasks; only use the given tasks. Give reasoning for the new task's priority positioning."}
+        user_message_update = {"role": "user", "content": "This is the task list that you have for this coming week for one client. It is ranked \
+        from highest priority to lowest: " + master_task_list +  " Now, using your own knowledge and expertise as  a Customer Success manager, \
+        insert the following new task(s) into the proper place in the task list based on priority and return the updated task list: " + content_update + " Tasks \
+        that require immediate attention to the customer's current operations (like issues or renewals) should be higher priority. Tasks that are for \
+        future plans (like feature requests) should be lesser priority. DO NOT create additional tasks; only use the given tasks. \
+        Give reasoning for the new task's priority positioning."}
 
     message_list_update.append(user_message_update)
 
@@ -366,8 +373,13 @@ def clean_list(task_list):
 
     clean_message_list.append(system_message)
 
-    user_message = {"role": "user", "content": "Given the following text, remove the extra reasoning parts. Remove the number at the end of each task as well. \
-    I only want a numbered task list. \n\n" + task_list}
+    '''user_message = {"role": "user", "content": "Given the following text, remove the extra reasoning parts. Remove the number at the end of each task as well. \
+    I only want a numbered task list. \n\n" + task_list}'''
+
+    user_message = {"role": "user", "content": "Given the following text, remove the extra reasoning parts. I only want a task list \
+    with no headers. \n\n" + task_list}
+
+    
 
     clean_message_list.append(user_message)
 
